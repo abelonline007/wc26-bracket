@@ -27,6 +27,23 @@ exports.handler = async function (event, context) {
     }
 
     const data = await res.json();
+
+    // TEMP DEBUG: surface API-Football's own diagnostics so we can see why
+    // the fixture list might be empty (bad key, wrong plan, rate limit, etc).
+    if (event.queryStringParameters && event.queryStringParameters.debug) {
+      return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          errors: data.errors,
+          results: data.results,
+          paging: data.paging,
+          parameters: data.parameters,
+          sampleFirstFixture: (data.response || [])[0] || null,
+        }),
+      };
+    }
+
     const fixtures = (data.response || [])
       // Only knockout-stage rounds - drop the 72 group-stage games to keep the payload small.
       .filter((f) => {
